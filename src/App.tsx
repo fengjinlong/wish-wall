@@ -177,6 +177,32 @@ export default function App() {
     setSelectedWishId(null);
   };
 
+  // Delete single wish
+  const handleDeleteWish = (wishId: string) => {
+    const remainingWishes = data.wishes.filter((w) => w.id !== wishId);
+    updateData({
+      ...data,
+      wishes: remainingWishes,
+    });
+    // Return to appropriate wall
+    if (selectedWish?.status === '已完成') {
+      setCurrentView('completed-wall');
+    } else {
+      setCurrentView('wish-wall');
+    }
+    setSelectedWishId(null);
+  };
+
+  // Clear all test wishes (keep members)
+  const handleClearAllWishes = () => {
+    updateData({
+      ...data,
+      wishes: [],
+    });
+    setCurrentView('wish-wall');
+    setSelectedWishId(null);
+  };
+
   const isDetailView = currentView === 'detail';
 
   return (
@@ -226,6 +252,7 @@ export default function App() {
             onBack={handleBackFromDetail}
             onOpenAddStep={() => setIsAddStepOpen(true)}
             onCompleteWish={handleCompleteWish}
+            onDeleteWish={() => handleDeleteWish(selectedWish.id)}
           />
         )}
       </main>
@@ -272,6 +299,7 @@ export default function App() {
         members={data.members}
         onSaveMembers={handleSaveMembers}
         onResetSampleData={handleResetSampleData}
+        onClearAllWishes={handleClearAllWishes}
       />
     </div>
   );

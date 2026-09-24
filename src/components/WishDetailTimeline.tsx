@@ -14,6 +14,7 @@ import {
   Compass,
   Smile,
   BadgeCheck,
+  Trash2,
 } from 'lucide-react';
 import { CATEGORY_OPTIONS, DECO_ICONS } from '../services/storage';
 import { sound } from '../utils/sound';
@@ -24,6 +25,7 @@ interface WishDetailTimelineProps {
   onBack: () => void;
   onOpenAddStep: () => void;
   onCompleteWish: () => void;
+  onDeleteWish?: () => void;
 }
 
 export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
@@ -32,6 +34,7 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
   onBack,
   onOpenAddStep,
   onCompleteWish,
+  onDeleteWish,
 }) => {
   const isCompleted = wish.status === '已完成';
   const steps = wish.progressSteps || [];
@@ -106,17 +109,39 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
             <span>返回{isCompleted ? '完成墙' : '许愿墙'}</span>
           </button>
 
-          <div className="flex items-center gap-2 text-xs font-medium text-[#7D6E5D]">
-            {isCompleted ? (
-              <span className="flex items-center gap-1 text-[#8C6920] bg-amber-100/70 border border-amber-200/80 px-2.5 py-0.5 rounded-full">
-                <Trophy className="w-3.5 h-3.5 text-[#D4A346]" />
-                已圆满达成
-              </span>
-            ) : (
-              <span className="flex items-center gap-1 bg-[#E8F0F3] text-[#3D6677] border border-[#CCDCE2] px-2.5 py-0.5 rounded-full">
-                <Footprints className="w-3.5 h-3.5 text-[#5B8EA6]" />
-                已迈出 {steps.length} 步
-              </span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-xs font-medium text-[#7D6E5D]">
+              {isCompleted ? (
+                <span className="flex items-center gap-1 text-[#8C6920] bg-amber-100/70 border border-amber-200/80 px-2.5 py-0.5 rounded-full">
+                  <Trophy className="w-3.5 h-3.5 text-[#D4A346]" />
+                  已圆满达成
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 bg-[#E8F0F3] text-[#3D6677] border border-[#CCDCE2] px-2.5 py-0.5 rounded-full">
+                  <Footprints className="w-3.5 h-3.5 text-[#5B8EA6]" />
+                  已迈出 {steps.length} 步
+                </span>
+              )}
+            </div>
+
+            {onDeleteWish && (
+              <button
+                onClick={() => {
+                  if (
+                    confirm(
+                      `确定要删除心愿「${wish.title}」及其所有足迹记录吗？\n删除后不可恢复。`
+                    )
+                  ) {
+                    sound.playTap();
+                    onDeleteWish();
+                  }
+                }}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs text-[#9E8A78] hover:text-red-600 hover:bg-red-50/80 border border-transparent hover:border-red-200 transition-colors"
+                title="删除这个心愿"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="hidden xs:inline text-[11px]">删除此心愿</span>
+              </button>
             )}
           </div>
         </div>
