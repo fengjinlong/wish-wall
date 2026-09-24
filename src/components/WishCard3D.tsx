@@ -1,6 +1,6 @@
 import React from 'react';
 import { Wish } from '../types';
-import { CATEGORY_OPTIONS, DECO_ICONS } from '../services/storage';
+import { DECO_ICONS } from '../services/storage';
 import {
   Sparkles,
   Compass,
@@ -18,8 +18,6 @@ interface WishCard3DProps {
   wish: Wish;
   isCompleted?: boolean;
   onClick: () => void;
-  // Camera transform relative depth for near/far perspective effect
-  relativeZ?: number;
   isSelected?: boolean;
 }
 
@@ -27,7 +25,6 @@ export const WishCard3D: React.FC<WishCard3DProps> = ({
   wish,
   isCompleted = false,
   onClick,
-  relativeZ = 0,
   isSelected = false,
 }) => {
   // Category icon mapping
@@ -60,32 +57,20 @@ export const WishCard3D: React.FC<WishCard3DProps> = ({
 
   const stepCount = wish.progressSteps?.length || 0;
 
-  // Depth-based scaling and opacity (cards further back in 3D are gently faded and scaled down)
-  // relativeZ ranges approx from -300 to +300
-  const normalizedDepth = Math.max(-1, Math.min(1, relativeZ / 300));
-  // Front: scale 1.08, opacity 1.0. Back: scale 0.78, opacity 0.55
-  const depthScale = isSelected ? 1.3 : 0.88 + normalizedDepth * 0.18;
-  const depthOpacity = isSelected ? 1 : Math.max(0.5, 0.75 + normalizedDepth * 0.25);
-
   return (
     <div
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      style={{
-        transform: `scale(${depthScale})`,
-        opacity: depthOpacity,
-        filter: normalizedDepth < -0.3 ? `blur(${Math.abs(normalizedDepth) * 1.5}px)` : 'none',
-      }}
-      className={`relative w-44 sm:w-48 p-3.5 rounded-2xl cursor-pointer select-none transition-all duration-300 transform-gpu ${
+      className={`relative w-44 sm:w-48 p-3.5 rounded-2xl cursor-pointer select-none transform-gpu backface-hidden ${
         isCompleted
           ? 'bg-[#FFFDF6] border-2 border-[#EAD5A0] completed-postit-card'
           : 'bg-[#FFFDF8] border border-[#E9DFCB] postit-card'
       } ${
         isSelected
-          ? 'ring-4 ring-amber-400/60 shadow-2xl scale-110 z-50'
-          : 'hover:scale-105 active:scale-95'
+          ? 'ring-4 ring-amber-400/70 shadow-2xl scale-110 z-50 transition-transform duration-200'
+          : 'hover:scale-105 active:scale-95 transition-transform duration-150'
       }`}
     >
       {/* Decorative Washi Tape on top */}
@@ -103,7 +88,7 @@ export const WishCard3D: React.FC<WishCard3DProps> = ({
       </div>
 
       {/* Wish Title */}
-      <h3 className="text-sm font-bold text-[#3E342A] line-clamp-2 leading-snug mb-3">
+      <h3 className="text-sm font-bold text-[#3E342B] line-clamp-2 leading-snug mb-3">
         {wish.title}
       </h3>
 
@@ -128,7 +113,7 @@ export const WishCard3D: React.FC<WishCard3DProps> = ({
           {Array.from({ length: Math.min(stepCount + (isCompleted ? 0 : 1), 5) }).map((_, idx) => (
             <span
               key={idx}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
+              className={`w-1.5 h-1.5 rounded-full ${
                 isCompleted
                   ? 'bg-amber-400'
                   : idx < stepCount

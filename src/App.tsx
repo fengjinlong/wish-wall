@@ -192,9 +192,6 @@ export default function App() {
         <HeaderNav
           currentView={currentView}
           setCurrentView={(v) => setCurrentView(v)}
-          members={data.members}
-          currentOperatorId={data.currentOperatorId}
-          setCurrentOperatorId={handleSetCurrentOperator}
           completedCount={completedWishes.length}
           inProgressCount={inProgressWishes.length}
           onOpenAddWish={() => setIsAddWishOpen(true)}

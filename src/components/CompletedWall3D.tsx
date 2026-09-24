@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Wish } from '../types';
 import { WishCard3D } from './WishCard3D';
 import { calculate3DPositions } from '../services/storage';
-import { Trophy, Move, Sparkles, Compass } from 'lucide-react';
+import { Trophy, Compass } from 'lucide-react';
 import { sound } from '../utils/sound';
 
 interface CompletedWall3DProps {
@@ -17,12 +17,10 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
   onBackToWishWall,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [rotX, setRotX] = useState<number>(-5);
-  const [rotY, setRotY] = useState<number>(20);
-  const [isInteracting, setIsInteracting] = useState<boolean>(false);
+  const sceneRef = useRef<HTMLDivElement>(null);
   const [selectedWishId, setSelectedWishId] = useState<string | null>(null);
 
-  const stateRef = useRef({
+  const physicsRef = useRef({
     isDown: false,
     startX: 0,
     startY: 0,
@@ -37,52 +35,51 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
 
   const positions = calculate3DPositions(wishes.length, 280);
 
-  const startInertia = useCallback(() => {
-    cancelAnimationFrame(stateRef.current.animId);
-
-    const step = () => {
-      if (stateRef.current.isDown) return;
-
-      const friction = 0.93;
-      stateRef.current.vx *= friction;
-      stateRef.current.vy *= friction;
-
-      const ambientSpeed = 0.035;
-      const currentVx =
-        Math.abs(stateRef.current.vx) < 0.03
-          ? ambientSpeed
-          : stateRef.current.vx;
-
-      stateRef.current.rotY += currentVx;
-      stateRef.current.rotX = Math.max(
-        -55,
-        Math.min(55, stateRef.current.rotX - stateRef.current.vy)
-      );
-
-      setRotY(stateRef.current.rotY);
-      setRotX(stateRef.current.rotX);
-
-      stateRef.current.animId = requestAnimationFrame(step);
-    };
-
-    stateRef.current.animId = requestAnimationFrame(step);
+  const applyTransform = useCallback((rx: number, ry: number) => {
+    if (sceneRef.current) {
+      sceneRef.current.style.transform = `translate3d(-50%, -50%, 0) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    }
   }, []);
 
   useEffect(() => {
-    startInertia();
-    return () => cancelAnimationFrame(stateRef.current.animId);
-  }, [startInertia]);
+    let active = true;
+
+    const tick = () => {
+      if (!active) return;
+      const p = physicsRef.current;
+
+      if (!p.isDown) {
+        p.vx *= 0.92;
+        p.vy *= 0.92;
+
+        const currentVx = Math.abs(p.vx) < 0.02 ? 0.025 : p.vx;
+
+        p.rotY = (p.rotY + currentVx) % 360;
+        p.rotX = Math.max(-50, Math.min(50, p.rotX - p.vy));
+
+        applyTransform(p.rotX, p.rotY);
+      }
+
+      p.animId = requestAnimationFrame(tick);
+    };
+
+    physicsRef.current.animId = requestAnimationFrame(tick);
+
+    return () => {
+      active = false;
+      cancelAnimationFrame(physicsRef.current.animId);
+    };
+  }, [applyTransform]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    stateRef.current.isDown = true;
-    stateRef.current.startX = e.clientX;
-    stateRef.current.startY = e.clientY;
-    stateRef.current.lastX = e.clientX;
-    stateRef.current.lastY = e.clientY;
-    stateRef.current.vx = 0;
-    stateRef.current.vy = 0;
-    setIsInteracting(true);
-    cancelAnimationFrame(stateRef.current.animId);
+    const p = physicsRef.current;
+    p.isDown = true;
+    p.startX = e.clientX;
+    p.startY = e.clientY;
+    p.lastX = e.clientX;
+    p.lastY = e.clientY;
+    p.vx = 0;
+    p.vy = 0;
 
     if (containerRef.current) {
       containerRef.current.setPointerCapture(e.pointerId);
@@ -90,42 +87,37 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!stateRef.current.isDown) return;
+    const p = physicsRef.current;
+    if (!p.isDown) return;
 
-    const dx = e.clientX - stateRef.current.lastX;
-    const dy = e.clientY - stateRef.current.lastY;
+    const dx = e.clientX - p.lastX;
+    const dy = e.clientY - p.lastY;
 
-    stateRef.current.lastX = e.clientX;
-    stateRef.current.lastY = e.clientY;
+    p.lastX = e.clientX;
+    p.lastY = e.clientY;
 
     const sensitivity = 0.35;
-    stateRef.current.vx = dx * sensitivity;
-    stateRef.current.vy = dy * sensitivity;
+    p.vx = dx * sensitivity;
+    p.vy = dy * sensitivity;
 
-    stateRef.current.rotY += stateRef.current.vx;
-    stateRef.current.rotX = Math.max(
-      -55,
-      Math.min(55, stateRef.current.rotX - stateRef.current.vy)
-    );
+    p.rotY = (p.rotY + p.vx) % 360;
+    p.rotX = Math.max(-50, Math.min(50, p.rotX - p.vy));
 
-    setRotY(stateRef.current.rotY);
-    setRotX(stateRef.current.rotX);
+    applyTransform(p.rotX, p.rotY);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    if (!stateRef.current.isDown) return;
-    stateRef.current.isDown = false;
-    setIsInteracting(false);
+    const p = physicsRef.current;
+    if (!p.isDown) return;
+    p.isDown = false;
 
     if (containerRef.current) {
       try {
         containerRef.current.releasePointerCapture(e.pointerId);
       } catch {
-        // Ignored
+        // ignore
       }
     }
-
-    startInertia();
   };
 
   const handleCardClick = (wish: Wish) => {
@@ -134,7 +126,7 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
     setTimeout(() => {
       onSelectWish(wish);
       setSelectedWishId(null);
-    }, 240);
+    }, 200);
   };
 
   return (
@@ -180,7 +172,10 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
             在许愿墙里记录迈出的每一步，当心愿达成时点击“心愿实现啦”，就能在这里永久珍藏！
           </p>
           <button
-            onClick={onBackToWishWall}
+            onClick={() => {
+              sound.playTap();
+              onBackToWishWall();
+            }}
             className="flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#D4A346] hover:bg-[#C29339] active:scale-95 text-white text-sm font-semibold shadow-md transition-all"
           >
             <Compass className="w-4 h-4 stroke-[2.5]" />
@@ -191,10 +186,11 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
 
       {/* 3D Scene Space Center */}
       <div
+        ref={sceneRef}
         className="absolute top-1/2 left-1/2 preserve-3d-scene"
         style={{
-          transform: `translate3d(-50%, -50%, 0) rotateX(${rotX}deg) rotateY(${rotY}deg)`,
-          transition: isInteracting ? 'none' : 'transform 0.1s linear',
+          transform: 'translate3d(-50%, -50%, 0) rotateX(-5deg) rotateY(20deg)',
+          transition: 'none',
         }}
       >
         {/* Core glowing ring */}
@@ -203,30 +199,19 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
         {/* 3D Floating Completed Cards */}
         {wishes.map((wish, index) => {
           const pos = positions[index] || { x: 0, y: 0, z: 0, rx: 0, ry: 0 };
-
-          const radY = (rotY * Math.PI) / 180;
-          const radX = (rotX * Math.PI) / 180;
-
-          const x1 = pos.x * Math.cos(radY) + pos.z * Math.sin(radY);
-          const z1 = -pos.x * Math.sin(radY) + pos.z * Math.cos(radY);
-          const y2 = pos.y * Math.cos(radX) - z1 * Math.sin(radX);
-          const z2 = pos.y * Math.sin(radX) + z1 * Math.cos(radX);
-
           const isSelected = selectedWishId === wish.id;
 
           return (
             <div
               key={wish.id}
-              className="absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 transform-gpu"
+              className="absolute -translate-x-1/2 -translate-y-1/2 transform-gpu"
               style={{
                 transform: `translate3d(${pos.x}px, ${pos.y}px, ${pos.z}px) rotateY(${pos.ry || 0}deg) rotateX(${pos.rx || 0}deg)`,
-                zIndex: isSelected ? 999 : Math.round(z2 + 500),
               }}
             >
               <WishCard3D
                 wish={wish}
                 isCompleted={true}
-                relativeZ={z2}
                 isSelected={isSelected}
                 onClick={() => handleCardClick(wish)}
               />

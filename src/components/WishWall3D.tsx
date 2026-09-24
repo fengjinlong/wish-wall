@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Wish } from '../types';
 import { WishCard3D } from './WishCard3D';
 import { calculate3DPositions } from '../services/storage';
-import { Plus, Move, Sparkles } from 'lucide-react';
+import { Plus, Move } from 'lucide-react';
 import { sound } from '../utils/sound';
 
 interface WishWall3DProps {
@@ -17,18 +17,14 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
   wishes,
   onSelectWish,
   onOpenAddWish,
-  onGoToCompleted,
-  completedCount,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [rotX, setRotX] = useState<number>(-8);
-  const [rotY, setRotY] = useState<number>(15);
-  const [isInteracting, setIsInteracting] = useState<boolean>(false);
+  const sceneRef = useRef<HTMLDivElement>(null);
   const [selectedWishId, setSelectedWishId] = useState<string | null>(null);
   const [hasInteracted, setHasInteracted] = useState<boolean>(false);
 
-  // Velocity and physics state in refs for zero-lag 60fps gesture handling
-  const stateRef = useRef({
+  // Physics & rotation state stored in refs to avoid 60fps React re-rendering jitter
+  const physicsRef = useRef({
     isDown: false,
     startX: 0,
     startY: 0,
@@ -41,59 +37,59 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
     animId: 0,
   });
 
-  // Calculate 3D sphere positions for each wish
   const positions = calculate3DPositions(wishes.length, 280);
 
-  // Smooth inertial animation loop
-  const startInertia = useCallback(() => {
-    cancelAnimationFrame(stateRef.current.animId);
-
-    const step = () => {
-      if (stateRef.current.isDown) return;
-
-      const friction = 0.93;
-      stateRef.current.vx *= friction;
-      stateRef.current.vy *= friction;
-
-      // Apply subtle ambient auto-drift when user is idle
-      const ambientSpeed = 0.04;
-      const currentVx =
-        Math.abs(stateRef.current.vx) < 0.03
-          ? ambientSpeed
-          : stateRef.current.vx;
-
-      stateRef.current.rotY += currentVx;
-      stateRef.current.rotX = Math.max(
-        -55,
-        Math.min(55, stateRef.current.rotX - stateRef.current.vy)
-      );
-
-      setRotY(stateRef.current.rotY);
-      setRotX(stateRef.current.rotX);
-
-      stateRef.current.animId = requestAnimationFrame(step);
-    };
-
-    stateRef.current.animId = requestAnimationFrame(step);
+  // Directly apply transform to DOM scene without React re-render cycle
+  const applyTransform = useCallback((rx: number, ry: number) => {
+    if (sceneRef.current) {
+      sceneRef.current.style.transform = `translate3d(-50%, -50%, 0) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    }
   }, []);
 
+  // Silky smooth inertia and ambient drift loop
   useEffect(() => {
-    startInertia();
-    return () => cancelAnimationFrame(stateRef.current.animId);
-  }, [startInertia]);
+    let active = true;
 
-  // Pointer event handlers (supports both touch and mouse transparently)
+    const tick = () => {
+      if (!active) return;
+      const p = physicsRef.current;
+
+      if (!p.isDown) {
+        // Friction damping
+        p.vx *= 0.92;
+        p.vy *= 0.92;
+
+        // Gentle ambient rotation when idle
+        const currentVx = Math.abs(p.vx) < 0.02 ? 0.03 : p.vx;
+
+        p.rotY = (p.rotY + currentVx) % 360;
+        p.rotX = Math.max(-50, Math.min(50, p.rotX - p.vy));
+
+        applyTransform(p.rotX, p.rotY);
+      }
+
+      p.animId = requestAnimationFrame(tick);
+    };
+
+    physicsRef.current.animId = requestAnimationFrame(tick);
+
+    return () => {
+      active = false;
+      cancelAnimationFrame(physicsRef.current.animId);
+    };
+  }, [applyTransform]);
+
+  // Pointer event handlers (mouse and touch)
   const handlePointerDown = (e: React.PointerEvent) => {
-    stateRef.current.isDown = true;
-    stateRef.current.startX = e.clientX;
-    stateRef.current.startY = e.clientY;
-    stateRef.current.lastX = e.clientX;
-    stateRef.current.lastY = e.clientY;
-    stateRef.current.vx = 0;
-    stateRef.current.vy = 0;
-    setIsInteracting(true);
+    const p = physicsRef.current;
+    p.isDown = true;
+    p.startX = e.clientX;
+    p.startY = e.clientY;
+    p.lastX = e.clientX;
+    p.lastY = e.clientY;
+    p.vx = 0;
+    p.vy = 0;
     setHasInteracted(true);
-    cancelAnimationFrame(stateRef.current.animId);
 
     if (containerRef.current) {
       containerRef.current.setPointerCapture(e.pointerId);
@@ -101,52 +97,46 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!stateRef.current.isDown) return;
+    const p = physicsRef.current;
+    if (!p.isDown) return;
 
-    const dx = e.clientX - stateRef.current.lastX;
-    const dy = e.clientY - stateRef.current.lastY;
+    const dx = e.clientX - p.lastX;
+    const dy = e.clientY - p.lastY;
 
-    stateRef.current.lastX = e.clientX;
-    stateRef.current.lastY = e.clientY;
+    p.lastX = e.clientX;
+    p.lastY = e.clientY;
 
     const sensitivity = 0.35;
-    stateRef.current.vx = dx * sensitivity;
-    stateRef.current.vy = dy * sensitivity;
+    p.vx = dx * sensitivity;
+    p.vy = dy * sensitivity;
 
-    stateRef.current.rotY += stateRef.current.vx;
-    stateRef.current.rotX = Math.max(
-      -55,
-      Math.min(55, stateRef.current.rotX - stateRef.current.vy)
-    );
+    p.rotY = (p.rotY + p.vx) % 360;
+    p.rotX = Math.max(-50, Math.min(50, p.rotX - p.vy));
 
-    setRotY(stateRef.current.rotY);
-    setRotX(stateRef.current.rotX);
+    applyTransform(p.rotX, p.rotY);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
-    if (!stateRef.current.isDown) return;
-    stateRef.current.isDown = false;
-    setIsInteracting(false);
+    const p = physicsRef.current;
+    if (!p.isDown) return;
+    p.isDown = false;
 
     if (containerRef.current) {
       try {
         containerRef.current.releasePointerCapture(e.pointerId);
       } catch {
-        // Ignored
+        // ignore
       }
     }
-
-    startInertia();
   };
 
   const handleCardClick = (wish: Wish) => {
     sound.playPop();
     setSelectedWishId(wish.id);
-    // Smooth delay for fly-in transition
     setTimeout(() => {
       onSelectWish(wish);
       setSelectedWishId(null);
-    }, 240);
+    }, 200);
   };
 
   return (
@@ -203,12 +193,13 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
         </div>
       )}
 
-      {/* 3D Scene Space Center */}
+      {/* 3D Scene Space Center - Driven with zero React re-render lag */}
       <div
+        ref={sceneRef}
         className="absolute top-1/2 left-1/2 preserve-3d-scene"
         style={{
-          transform: `translate3d(-50%, -50%, 0) rotateX(${rotX}deg) rotateY(${rotY}deg)`,
-          transition: isInteracting ? 'none' : 'transform 0.1s linear',
+          transform: 'translate3d(-50%, -50%, 0) rotateX(-8deg) rotateY(15deg)',
+          transition: 'none',
         }}
       >
         {/* Core anchor center sphere ring */}
@@ -217,31 +208,19 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
         {/* 3D Floating Wish Cards */}
         {wishes.map((wish, index) => {
           const pos = positions[index] || { x: 0, y: 0, z: 0, rx: 0, ry: 0 };
-
-          // Math for relative Z depth given current rotation
-          const radY = (rotY * Math.PI) / 180;
-          const radX = (rotX * Math.PI) / 180;
-
-          const x1 = pos.x * Math.cos(radY) + pos.z * Math.sin(radY);
-          const z1 = -pos.x * Math.sin(radY) + pos.z * Math.cos(radY);
-          const y2 = pos.y * Math.cos(radX) - z1 * Math.sin(radX);
-          const z2 = pos.y * Math.sin(radX) + z1 * Math.cos(radX);
-
           const isSelected = selectedWishId === wish.id;
 
           return (
             <div
               key={wish.id}
-              className="absolute -translate-x-1/2 -translate-y-1/2 transition-transform duration-300 transform-gpu"
+              className="absolute -translate-x-1/2 -translate-y-1/2 transform-gpu"
               style={{
                 transform: `translate3d(${pos.x}px, ${pos.y}px, ${pos.z}px) rotateY(${pos.ry || 0}deg) rotateX(${pos.rx || 0}deg)`,
-                zIndex: isSelected ? 999 : Math.round(z2 + 500),
               }}
             >
               <WishCard3D
                 wish={wish}
                 isCompleted={false}
-                relativeZ={z2}
                 isSelected={isSelected}
                 onClick={() => handleCardClick(wish)}
               />
