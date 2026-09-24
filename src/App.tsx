@@ -193,16 +193,6 @@ export default function App() {
     setSelectedWishId(null);
   };
 
-  // Clear all test wishes (keep members)
-  const handleClearAllWishes = () => {
-    updateData({
-      ...data,
-      wishes: [],
-    });
-    setCurrentView('wish-wall');
-    setSelectedWishId(null);
-  };
-
   const isDetailView = currentView === 'detail';
 
   return (
@@ -299,7 +289,6 @@ export default function App() {
         members={data.members}
         onSaveMembers={handleSaveMembers}
         onResetSampleData={handleResetSampleData}
-        onClearAllWishes={handleClearAllWishes}
       />
     </div>
   );

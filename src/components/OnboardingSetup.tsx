@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Member, FamilyData } from '../types';
-import { X, Sparkles, Check, RotateCcw, Trash2 } from 'lucide-react';
+import { X, Sparkles, Check, RotateCcw } from 'lucide-react';
 import { getInitialFamilyData } from '../services/storage';
 import { sound } from '../utils/sound';
 
@@ -11,7 +11,6 @@ interface OnboardingSetupProps {
   members: Member[];
   onSaveMembers: (updatedMembers: Member[]) => void;
   onResetSampleData?: () => void;
-  onClearAllWishes?: () => void;
 }
 
 const AVATAR_OPTIONS = ['👦', '🧑', '🧒', '👨', '🧔', '👩', '👱‍♀️', '🌸', '🌱', '⭐', '🦁', '🐬'];
@@ -23,7 +22,6 @@ export const OnboardingSetup: React.FC<OnboardingSetupProps> = ({
   members,
   onSaveMembers,
   onResetSampleData,
-  onClearAllWishes,
 }) => {
   const [localMembers, setLocalMembers] = useState<Member[]>(members);
 
@@ -77,113 +75,91 @@ export const OnboardingSetup: React.FC<OnboardingSetupProps> = ({
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {localMembers.map((member) => (
             <div
               key={member.id}
-              className="p-3.5 rounded-2xl border bg-[#FAF7F0] space-y-2.5"
-              style={{ borderColor: member.borderColor }}
+              className="p-3.5 sm:p-4 rounded-2xl border transition-all"
+              style={{
+                backgroundColor: member.lightColor,
+                borderColor: member.borderColor,
+              }}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-[#554738]">
+              <div className="flex items-center justify-between mb-2.5">
+                <span
+                  className="text-xs font-bold px-2 py-0.5 rounded-full"
+                  style={{
+                    backgroundColor: `${member.colorTag}15`,
+                    color: member.colorTag,
+                  }}
+                >
                   {member.role}
                 </span>
-                <span
-                  className="w-3 h-3 rounded-full shadow-xs"
-                  style={{ backgroundColor: member.colorTag }}
-                  title="专属标识色"
+                <span className="text-[11px] text-[#8C7C6D]">专属标识色</span>
+              </div>
+
+              {/* Name input */}
+              <div className="mb-3">
+                <label className="block text-[11px] font-semibold text-[#6E5D4C] mb-1">
+                  昵称称呼
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={member.name}
+                  onChange={(e) => handleNameChange(member.id, e.target.value)}
+                  className="w-full px-3 py-1.5 rounded-xl bg-white border border-[#E2D6C2] text-xs sm:text-sm text-[#3E342B] focus:outline-none focus:ring-2 focus:ring-[#5B8EA6]/40"
                 />
               </div>
 
-              <div className="flex items-center gap-3">
-                {/* Avatar Preview */}
-                <div
-                  className="w-11 h-11 rounded-2xl flex items-center justify-center text-2xl border shadow-xs bg-white shrink-0"
-                  style={{ borderColor: member.borderColor }}
-                >
-                  {member.avatar}
+              {/* Avatar picker */}
+              <div>
+                <label className="block text-[11px] font-semibold text-[#6E5D4C] mb-1">
+                  选择专属头像
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {AVATAR_OPTIONS.map((av) => (
+                    <button
+                      type="button"
+                      key={av}
+                      onClick={() => handleAvatarChange(member.id, av)}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-sm sm:text-base transition-all ${
+                        member.avatar === av
+                          ? 'bg-white ring-2 ring-offset-1 shadow-xs scale-105'
+                          : 'hover:bg-white/60'
+                      }`}
+                      style={
+                        member.avatar === av
+                          ? { borderColor: member.colorTag, boxShadow: `0 0 0 2px ${member.colorTag}` }
+                          : {}
+                      }
+                    >
+                      {av}
+                    </button>
+                  ))}
                 </div>
-
-                {/* Nickname Input */}
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    required
-                    value={member.name}
-                    onChange={(e) => handleNameChange(member.id, e.target.value)}
-                    placeholder={`请输入${member.role}昵称`}
-                    className="w-full px-3 py-1.5 rounded-xl bg-white border border-[#E5DAC6] text-xs font-semibold text-[#3E342B] focus:outline-none focus:ring-2 focus:ring-[#5B8EA6]/40"
-                  />
-                </div>
-              </div>
-
-              {/* Avatar Picker Quick Strip */}
-              <div className="flex items-center gap-1.5 overflow-x-auto py-1">
-                {AVATAR_OPTIONS.map((av) => (
-                  <button
-                    type="button"
-                    key={av}
-                    onClick={() => handleAvatarChange(member.id, av)}
-                    className={`w-7 h-7 rounded-lg text-sm flex items-center justify-center shrink-0 border transition-all ${
-                      member.avatar === av
-                        ? 'border-amber-400 bg-amber-50 scale-110 shadow-xs'
-                        : 'border-[#EDE4D4] bg-white hover:bg-[#FAF4EB]'
-                    }`}
-                  >
-                    {av}
-                  </button>
-                ))}
               </div>
             </div>
           ))}
 
-          {/* Data Management Section (Clear Test Wishes & Reset Sample) */}
-          {!isInitial && (
-            <div className="pt-3 border-t border-[#F0E6D4] space-y-2">
-              <div className="text-[11px] font-bold text-[#8E7E6E]">测试数据与手帐管理</div>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                {onClearAllWishes && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (
-                        confirm(
-                          '确定清空当前所有测试心愿吗？\n\n这会删除现有的所有心愿卡片（保留当前设置的成员昵称与头像），手帐将变为空白状态，方便你们记录真正的家庭心愿！'
-                        )
-                      ) {
-                        sound.playPop();
-                        onClearAllWishes();
-                        onClose();
-                      }
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold border border-red-200 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    <span>清空所有测试心愿</span>
-                  </button>
-                )}
-
-                {onResetSampleData && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (
-                        confirm(
-                          '确认恢复系统默认的示例心愿吗？这将重置当前手帐为初始演示数据。'
-                        )
-                      ) {
-                        sound.playPop();
-                        onResetSampleData();
-                        onClose();
-                      }
-                    }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F6F0E4] hover:bg-[#EFE7D8] text-[#8C6D32] text-xs font-medium border border-[#E4D5BC] transition-colors"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>恢复示例数据</span>
-                  </button>
-                )}
-              </div>
+          {/* Reset Demo Data (Only in Settings view) */}
+          {!isInitial && onResetSampleData && (
+            <div className="pt-2 flex items-center justify-between text-xs text-[#8E7E6E] border-t border-[#F0E6D4]">
+              <span>想要重新体验示例心愿？</span>
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm('确认恢复默认的家庭示例心愿吗？这将重置当前手帐数据。')) {
+                    sound.playPop();
+                    onResetSampleData();
+                    onClose();
+                  }
+                }}
+                className="flex items-center gap-1 text-[#9E6D38] hover:underline font-medium"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>恢复示例数据</span>
+              </button>
             </div>
           )}
 
