@@ -22,6 +22,7 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
 
   const physicsRef = useRef({
     isDown: false,
+    hasDragged: false,
     startX: 0,
     startY: 0,
     lastX: 0,
@@ -72,23 +73,36 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
   }, [applyTransform]);
 
   const handlePointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+
     const p = physicsRef.current;
     p.isDown = true;
+    p.hasDragged = false;
     p.startX = e.clientX;
     p.startY = e.clientY;
     p.lastX = e.clientX;
     p.lastY = e.clientY;
     p.vx = 0;
     p.vy = 0;
-
-    if (containerRef.current) {
-      containerRef.current.setPointerCapture(e.pointerId);
-    }
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     const p = physicsRef.current;
     if (!p.isDown) return;
+
+    const totalDist = Math.hypot(e.clientX - p.startX, e.clientY - p.startY);
+    if (!p.hasDragged && totalDist > 4) {
+      p.hasDragged = true;
+      if (containerRef.current) {
+        try {
+          containerRef.current.setPointerCapture(e.pointerId);
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    if (!p.hasDragged) return;
 
     const dx = e.clientX - p.lastX;
     const dy = e.clientY - p.lastY;
@@ -113,7 +127,9 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
 
     if (containerRef.current) {
       try {
-        containerRef.current.releasePointerCapture(e.pointerId);
+        if (containerRef.current.hasPointerCapture(e.pointerId)) {
+          containerRef.current.releasePointerCapture(e.pointerId);
+        }
       } catch {
         // ignore
       }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Wish } from '../types';
 import { DECO_ICONS } from '../services/storage';
 import {
@@ -27,6 +27,16 @@ export const WishCard3D: React.FC<WishCard3DProps> = ({
   onClick,
   isSelected = false,
 }) => {
+  const downPosRef = useRef<{ x: number; y: number } | null>(null);
+  const lastTriggerRef = useRef<number>(0);
+
+  const safeTrigger = () => {
+    const now = Date.now();
+    if (now - lastTriggerRef.current < 250) return;
+    lastTriggerRef.current = now;
+    onClick();
+  };
+
   // Category icon mapping
   const getCategoryIcon = (id: string) => {
     switch (id) {
@@ -59,11 +69,26 @@ export const WishCard3D: React.FC<WishCard3DProps> = ({
 
   return (
     <div
+      onPointerDown={(e) => {
+        downPosRef.current = { x: e.clientX, y: e.clientY };
+      }}
+      onPointerUp={(e) => {
+        if (downPosRef.current) {
+          const dist = Math.hypot(
+            e.clientX - downPosRef.current.x,
+            e.clientY - downPosRef.current.y
+          );
+          if (dist < 8) {
+            safeTrigger();
+          }
+        }
+        downPosRef.current = null;
+      }}
       onClick={(e) => {
         e.stopPropagation();
-        onClick();
+        safeTrigger();
       }}
-      className={`relative w-44 sm:w-48 p-3.5 rounded-2xl cursor-pointer select-none transform-gpu backface-hidden ${
+      className={`relative w-44 sm:w-48 p-3.5 rounded-2xl cursor-pointer select-none transform-gpu backface-hidden pointer-events-auto ${
         isCompleted
           ? 'bg-[#FFFDF6] border-2 border-[#EAD5A0] completed-postit-card'
           : 'bg-[#FFFDF8] border border-[#E9DFCB] postit-card'

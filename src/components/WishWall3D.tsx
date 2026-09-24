@@ -26,6 +26,7 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
   // Physics & rotation state stored in refs to avoid 60fps React re-rendering jitter
   const physicsRef = useRef({
     isDown: false,
+    hasDragged: false,
     startX: 0,
     startY: 0,
     lastX: 0,
@@ -81,8 +82,12 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
 
   // Pointer event handlers (mouse and touch)
   const handlePointerDown = (e: React.PointerEvent) => {
+    // Only handle primary button
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+
     const p = physicsRef.current;
     p.isDown = true;
+    p.hasDragged = false;
     p.startX = e.clientX;
     p.startY = e.clientY;
     p.lastX = e.clientX;
@@ -90,15 +95,28 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
     p.vx = 0;
     p.vy = 0;
     setHasInteracted(true);
-
-    if (containerRef.current) {
-      containerRef.current.setPointerCapture(e.pointerId);
-    }
+    // Note: Do NOT setPointerCapture here immediately, otherwise it captures mouse
+    // away from the cards and breaks desktop clicking!
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
     const p = physicsRef.current;
     if (!p.isDown) return;
+
+    const totalDist = Math.hypot(e.clientX - p.startX, e.clientY - p.startY);
+    // Only treat as drag when movement threshold is crossed
+    if (!p.hasDragged && totalDist > 4) {
+      p.hasDragged = true;
+      if (containerRef.current) {
+        try {
+          containerRef.current.setPointerCapture(e.pointerId);
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    if (!p.hasDragged) return;
 
     const dx = e.clientX - p.lastX;
     const dy = e.clientY - p.lastY;
@@ -123,7 +141,9 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
 
     if (containerRef.current) {
       try {
-        containerRef.current.releasePointerCapture(e.pointerId);
+        if (containerRef.current.hasPointerCapture(e.pointerId)) {
+          containerRef.current.releasePointerCapture(e.pointerId);
+        }
       } catch {
         // ignore
       }
