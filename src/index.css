@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: #FAF7F0;
+    color: #4A4036;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "ZCOOL KuaiLe", sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow-x: hidden;
+  }
+}
+
+/* 3D 空间透视 */
+.perspective-container {
+  perspective: 1100px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+  touch-action: none;
+}
+
+.preserve-3d-scene {
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* 便签纸张质感与阴影 */
+.postit-card {
+  box-shadow: 0 4px 14px -2px rgba(100, 80, 60, 0.08), 0 10px 28px -6px rgba(100, 80, 60, 0.12);
+  transition: transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.postit-card:hover {
+  box-shadow: 0 8px 20px -3px rgba(100, 80, 60, 0.12), 0 16px 36px -8px rgba(100, 80, 60, 0.16);
+}
+
+/* 荣誉完成墙金色质感便签 */
+.completed-postit-card {
+  box-shadow: 0 0 0 1px rgba(226, 178, 88, 0.35), 0 6px 18px -2px rgba(180, 130, 50, 0.12), 0 12px 30px -4px rgba(212, 163, 70, 0.15);
+}
+
+/* 自定义轻柔手写体风格 */
+.font-handwriting {
+  font-family: "ZCOOL KuaiLe", "PingFang SC", "Microsoft YaHei", cursive, sans-serif;
+}
+
+/* 胶带贴纸效果装饰 */
+.washi-tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 16px;
+  background-color: rgba(240, 235, 220, 0.7);
+  backdrop-filter: blur(2px);
+  border-left: 2px dashed rgba(200, 190, 170, 0.6);
+  border-right: 2px dashed rgba(200, 190, 170, 0.6);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 柔和滚动条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D9D0C3;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #BFB4A3;
+}

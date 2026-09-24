@@ -1,0 +1,7 @@
+{
+  "name": "心愿清单 - 温馨家庭成长手帐",
+  "description": "专为一家三口打造的温馨心愿清单小程序，3D空间悬浮便签墙与成长时间线，记录全家每一步努力与心愿达成。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
