@@ -16,6 +16,7 @@ import {
   BadgeCheck,
 } from 'lucide-react';
 import { CATEGORY_OPTIONS, DECO_ICONS } from '../services/storage';
+import { sound } from '../utils/sound';
 
 interface WishDetailTimelineProps {
   wish: Wish;
@@ -95,7 +96,10 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
       <div className="sticky top-0 z-30 bg-[#FAF7F0]/90 backdrop-blur-md border-b border-[#ECE2D0] px-4 py-3">
         <div className="max-w-3xl mx-auto flex items-center justify-between">
           <button
-            onClick={onBack}
+            onClick={() => {
+              sound.playTap();
+              onBack();
+            }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F2ECE0] hover:bg-[#E9DFD0] text-xs font-semibold text-[#5A4D3E] transition-all active:scale-95 shadow-xs"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -267,7 +271,10 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
               </p>
               {!isCompleted && (
                 <button
-                  onClick={onOpenAddStep}
+                  onClick={() => {
+                    sound.playTap();
+                    onOpenAddStep();
+                  }}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#4E8199] hover:bg-[#447287] text-white text-xs font-semibold shadow-xs"
                 >
                   <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -380,26 +387,32 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
           </div>
         </div>
 
-        {/* Bottom Actions Bar */}
-        <div className="mt-10 pt-6 border-t border-[#ECE2D0] flex flex-wrap items-center justify-between gap-3">
+        {/* Bottom Actions Bar - Optimized for mobile: Never awkward wrap */}
+        <div className="mt-10 pt-6 border-t border-[#ECE2D0]">
           {!isCompleted ? (
-            <>
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3.5">
               <button
-                onClick={onOpenAddStep}
-                className="flex-1 min-w-[140px] flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#4E8199] hover:bg-[#437187] active:scale-98 text-white text-sm font-bold shadow-md transition-all"
+                onClick={() => {
+                  sound.playTap();
+                  onOpenAddStep();
+                }}
+                className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#4E8199] hover:bg-[#437187] active:scale-98 text-white text-sm font-bold shadow-md transition-all whitespace-nowrap"
               >
-                <Plus className="w-4 h-4 stroke-[2.5]" />
+                <Plus className="w-4 h-4 stroke-[2.5] shrink-0" />
                 <span>记录新的一步</span>
               </button>
 
               <button
-                onClick={onCompleteWish}
-                className="flex-1 min-w-[160px] flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-linear-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 active:scale-98 text-[#3A2800] text-sm font-extrabold shadow-md transition-all"
+                onClick={() => {
+                  sound.playCelebration();
+                  onCompleteWish();
+                }}
+                className="w-full sm:flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-linear-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 active:scale-98 text-[#3A2800] text-sm font-extrabold shadow-md transition-all whitespace-nowrap"
               >
-                <Sparkles className="w-4 h-4 text-[#3A2800]" />
-                <span>这个心愿实现啦！🎉</span>
+                <Sparkles className="w-4 h-4 text-[#3A2800] shrink-0" />
+                <span className="whitespace-nowrap">这个心愿实现啦！🎉</span>
               </button>
-            </>
+            </div>
           ) : (
             <div className="w-full text-center py-3 bg-[#FFFDF7] rounded-2xl border border-[#E8D49E] text-xs text-[#8C6920] font-medium">
               ✨ 这个心愿已在家庭完成墙中永久珍藏，随时可以回来翻阅这段珍贵的奋斗时光！

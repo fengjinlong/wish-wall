@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Wish, Member } from '../types';
 import { fireConfetti } from '../utils/confetti';
 import { Trophy, Sparkles, ArrowRight, Heart } from 'lucide-react';
+import { sound } from '../utils/sound';
 
 interface CelebrationModalProps {
   isOpen: boolean;
@@ -20,6 +21,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
 }) => {
   useEffect(() => {
     if (isOpen) {
+      sound.playCelebration();
       fireConfetti(2800);
     }
   }, [isOpen]);

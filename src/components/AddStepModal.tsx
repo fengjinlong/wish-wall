@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Wish, Member, MemberId } from '../types';
 import { generateStepMoodAndEncouragement } from '../services/gemini';
 import { X, Sparkles, Loader2, Quote, RefreshCw } from 'lucide-react';
+import { sound } from '../utils/sound';
 
 interface AddStepModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export const AddStepModal: React.FC<AddStepModalProps> = ({
   if (!isOpen) return null;
 
   const handleToggleOwner = (id: string) => {
+    sound.playPop();
     if (id === 'all') {
       setSelectedOwners(['all']);
       return;
@@ -57,6 +59,7 @@ export const AddStepModal: React.FC<AddStepModalProps> = ({
     e.preventDefault();
     if (!content.trim() || isLoading) return;
 
+    sound.playTap();
     setIsLoading(true);
 
     try {
@@ -79,6 +82,8 @@ export const AddStepModal: React.FC<AddStepModalProps> = ({
         previousEncouragements,
       });
 
+      sound.playStepChime();
+
       // Save step permanently to wish
       onSaveStep({
         by: selectedOwners,
@@ -91,6 +96,7 @@ export const AddStepModal: React.FC<AddStepModalProps> = ({
       onClose();
     } catch (err) {
       console.error('Error generating step:', err);
+      sound.playStepChime();
       // Fallback
       onSaveStep({
         by: selectedOwners,

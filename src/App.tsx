@@ -177,10 +177,18 @@ export default function App() {
     setSelectedWishId(null);
   };
 
+  const isDetailView = currentView === 'detail';
+
   return (
-    <div className="min-h-screen bg-[#FAF7F0] text-[#4A4036] flex flex-col font-sans select-none">
+    <div
+      className={`${
+        isDetailView
+          ? 'min-h-screen overflow-y-auto'
+          : 'h-screen h-[100dvh] overflow-hidden'
+      } bg-[#FAF7F0] text-[#4A4036] flex flex-col font-sans select-none`}
+    >
       {/* Navigation Header (Hidden on Timeline Detail to maximize focus) */}
-      {currentView !== 'detail' && (
+      {!isDetailView && (
         <HeaderNav
           currentView={currentView}
           setCurrentView={(v) => setCurrentView(v)}
@@ -195,7 +203,7 @@ export default function App() {
       )}
 
       {/* Main View Router */}
-      <main className="flex-1 relative">
+      <main className={`flex-1 relative ${isDetailView ? 'w-full' : 'w-full h-full overflow-hidden'}`}>
         {currentView === 'wish-wall' && (
           <WishWall3D
             wishes={inProgressWishes}

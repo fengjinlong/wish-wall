@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Member, MemberId } from '../types';
 import { CATEGORY_OPTIONS, DECO_ICONS } from '../services/storage';
 import { X, Sparkles, Heart } from 'lucide-react';
+import { sound } from '../utils/sound';
 
 interface AddWishModalProps {
   isOpen: boolean;
@@ -34,6 +35,7 @@ export const AddWishModal: React.FC<AddWishModalProps> = ({
   if (!isOpen) return null;
 
   const handleToggleOwner = (id: string) => {
+    sound.playPop();
     if (id === 'all') {
       setSelectedOwners(['all']);
       return;
@@ -59,6 +61,8 @@ export const AddWishModal: React.FC<AddWishModalProps> = ({
     e.preventDefault();
     if (!title.trim()) return;
 
+    sound.playStepChime();
+
     onAddWish({
       title: title.trim(),
       note: note.trim(),
@@ -74,26 +78,29 @@ export const AddWishModal: React.FC<AddWishModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3C3228]/40 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#3C3228]/45 backdrop-blur-xs animate-in fade-in duration-200">
       <div
-        className="relative w-full max-w-lg bg-[#FFFDF9] rounded-3xl border border-[#E9DFCB] shadow-2xl p-6 sm:p-7 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg bg-[#FFFDF9] rounded-3xl border border-[#E9DFCB] shadow-2xl p-5 sm:p-7 max-h-[92vh] overflow-y-auto overflow-x-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#F0E6D4] mb-5">
+        <div className="flex items-center justify-between pb-3 border-b border-[#F0E6D4] mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-2xl">🌱</span>
-            <h2 className="text-lg font-bold text-[#3E342B]">许下一个新心愿</h2>
+            <span className="text-xl sm:text-2xl">🌱</span>
+            <h2 className="text-base sm:text-lg font-bold text-[#3E342B]">许下一个新心愿</h2>
           </div>
           <button
-            onClick={onClose}
+            onClick={() => {
+              sound.playTap();
+              onClose();
+            }}
             className="p-1.5 rounded-full text-[#9C8B79] hover:text-[#42382E] hover:bg-[#F2ECE0] transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Title Input */}
           <div>
             <label className="block text-xs font-bold text-[#5C4D3E] mb-1.5">
@@ -105,7 +112,7 @@ export const AddWishModal: React.FC<AddWishModalProps> = ({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="例如：学会自由泳、去海边露营、拼完大地图..."
-              className="w-full px-4 py-2.5 rounded-2xl bg-[#FAF6EE] border border-[#E5DAC6] text-sm text-[#3E342B] placeholder-[#A89885] focus:outline-none focus:ring-2 focus:ring-[#5B8EA6]/50 focus:border-[#5B8EA6] transition-all"
+              className="w-full px-3.5 py-2.5 rounded-2xl bg-[#FAF6EE] border border-[#E5DAC6] text-xs sm:text-sm text-[#3E342B] placeholder-[#A89885] focus:outline-none focus:ring-2 focus:ring-[#5B8EA6]/50 focus:border-[#5B8EA6] transition-all"
             />
           </div>
 
@@ -119,22 +126,25 @@ export const AddWishModal: React.FC<AddWishModalProps> = ({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="写下一两句温暖的初衷，日后回看会格外有意义..."
-              className="w-full px-4 py-2 rounded-2xl bg-[#FAF6EE] border border-[#E5DAC6] text-sm text-[#3E342B] placeholder-[#A89885] focus:outline-none focus:ring-2 focus:ring-[#5B8EA6]/50 focus:border-[#5B8EA6] transition-all resize-none"
+              className="w-full px-3.5 py-2 rounded-2xl bg-[#FAF6EE] border border-[#E5DAC6] text-xs sm:text-sm text-[#3E342B] placeholder-[#A89885] focus:outline-none focus:ring-2 focus:ring-[#5B8EA6]/50 focus:border-[#5B8EA6] transition-all resize-none"
             />
           </div>
 
           {/* Category Icon */}
           <div>
-            <label className="block text-xs font-bold text-[#5C4D3E] mb-2">
+            <label className="block text-xs font-bold text-[#5C4D3E] mb-1.5">
               心愿分类
             </label>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
               {CATEGORY_OPTIONS.map((cat) => (
                 <button
                   type="button"
                   key={cat.id}
-                  onClick={() => setCategoryIcon(cat.id)}
-                  className={`flex flex-col items-center justify-center p-2 rounded-2xl border text-xs transition-all ${
+                  onClick={() => {
+                    sound.playPop();
+                    setCategoryIcon(cat.id);
+                  }}
+                  className={`flex flex-col items-center justify-center py-2 px-1 rounded-2xl border text-[11px] sm:text-xs transition-all ${
                     categoryIcon === cat.id
                       ? 'bg-[#EBF3F7] border-[#5B8EA6] text-[#2F596D] font-bold shadow-xs'
                       : 'bg-[#FAF6EE] border-[#ECE1CF] text-[#786755] hover:bg-[#F3EDE2]'
@@ -150,26 +160,29 @@ export const AddWishModal: React.FC<AddWishModalProps> = ({
                     {cat.id === 'food' && '🍳'}
                     {cat.id === 'outdoor' && '⛺'}
                   </span>
-                  <span>{cat.label}</span>
+                  <span className="truncate max-w-full">{cat.label}</span>
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Natural Deco Element */}
+          {/* Natural Deco Element - Fully wrapped with no horizontal scrollbar */}
           <div>
             <label className="block text-xs font-bold text-[#5C4D3E] mb-1.5">
               便签微风点缀
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               {DECO_ICONS.map((deco) => (
                 <button
                   type="button"
                   key={deco.id}
-                  onClick={() => setDecoIcon(deco.id)}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full border text-xs transition-all ${
+                  onClick={() => {
+                    sound.playPop();
+                    setDecoIcon(deco.id);
+                  }}
+                  className={`flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full border text-xs transition-all ${
                     decoIcon === deco.id
-                      ? 'bg-amber-100/70 border-amber-300 text-[#7D5F18] font-bold'
+                      ? 'bg-amber-100/80 border-amber-300 text-[#7D5F18] font-bold shadow-xs'
                       : 'bg-[#FAF6EE] border-[#ECE1CF] text-[#7A6A58] hover:bg-[#F3EDE2]'
                   }`}
                 >
@@ -182,10 +195,10 @@ export const AddWishModal: React.FC<AddWishModalProps> = ({
 
           {/* Owners Multi-select */}
           <div>
-            <label className="block text-xs font-bold text-[#5C4D3E] mb-2">
+            <label className="block text-xs font-bold text-[#5C4D3E] mb-1.5">
               心愿归属人（可多选）
             </label>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
                 onClick={() => handleToggleOwner('all')}
@@ -230,17 +243,20 @@ export const AddWishModal: React.FC<AddWishModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="pt-3 border-t border-[#F0E6D4] flex items-center justify-end gap-3">
+          <div className="pt-3 border-t border-[#F0E6D4] flex items-center justify-end gap-2.5">
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => {
+                sound.playTap();
+                onClose();
+              }}
               className="px-4 py-2 rounded-2xl text-xs font-semibold text-[#80705E] hover:bg-[#F3EBE0] transition-colors"
             >
               取消
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-2xl bg-[#4E8199] hover:bg-[#437187] active:scale-95 text-white text-xs font-bold shadow-sm transition-all"
+              className="px-5 sm:px-6 py-2.5 rounded-2xl bg-[#4E8199] hover:bg-[#437187] active:scale-95 text-white text-xs font-bold shadow-sm transition-all"
             >
               贴上许愿墙
             </button>

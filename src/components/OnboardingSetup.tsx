@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Member, FamilyData } from '../types';
 import { X, Sparkles, Check, RotateCcw } from 'lucide-react';
 import { getInitialFamilyData } from '../services/storage';
+import { sound } from '../utils/sound';
 
 interface OnboardingSetupProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export const OnboardingSetup: React.FC<OnboardingSetupProps> = ({
   };
 
   const handleAvatarChange = (id: string, avatar: string) => {
+    sound.playPop();
     setLocalMembers((prev) =>
       prev.map((m) => (m.id === id ? { ...m, avatar } : m))
     );
@@ -40,6 +42,7 @@ export const OnboardingSetup: React.FC<OnboardingSetupProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    sound.playStepChime();
     onSaveMembers(localMembers);
     onClose();
   };

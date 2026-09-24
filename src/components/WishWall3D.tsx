@@ -3,6 +3,7 @@ import { Wish } from '../types';
 import { WishCard3D } from './WishCard3D';
 import { calculate3DPositions } from '../services/storage';
 import { Plus, Move, Sparkles } from 'lucide-react';
+import { sound } from '../utils/sound';
 
 interface WishWall3DProps {
   wishes: Wish[];
@@ -139,6 +140,7 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
   };
 
   const handleCardClick = (wish: Wish) => {
+    sound.playPop();
     setSelectedWishId(wish.id);
     // Smooth delay for fly-in transition
     setTimeout(() => {
@@ -154,7 +156,7 @@ export const WishWall3D: React.FC<WishWall3DProps> = ({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className="relative w-full h-[calc(100vh-62px)] overflow-hidden perspective-container cursor-grab active:cursor-grabbing bg-radial from-[#FAF7F0] via-[#F5EFE4] to-[#ECE3D2]"
+      className="relative w-full h-full overflow-hidden perspective-container cursor-grab active:cursor-grabbing bg-radial from-[#FAF7F0] via-[#F5EFE4] to-[#ECE3D2]"
     >
       {/* Background Ambience: Subtle floating natural orbs */}
       <div className="absolute inset-0 pointer-events-none opacity-40 overflow-hidden">

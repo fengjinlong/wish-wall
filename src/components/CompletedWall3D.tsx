@@ -3,6 +3,7 @@ import { Wish } from '../types';
 import { WishCard3D } from './WishCard3D';
 import { calculate3DPositions } from '../services/storage';
 import { Trophy, Move, Sparkles, Compass } from 'lucide-react';
+import { sound } from '../utils/sound';
 
 interface CompletedWall3DProps {
   wishes: Wish[];
@@ -128,6 +129,7 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
   };
 
   const handleCardClick = (wish: Wish) => {
+    sound.playPop();
     setSelectedWishId(wish.id);
     setTimeout(() => {
       onSelectWish(wish);
@@ -142,7 +144,7 @@ export const CompletedWall3D: React.FC<CompletedWall3DProps> = ({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      className="relative w-full h-[calc(100vh-62px)] overflow-hidden perspective-container cursor-grab active:cursor-grabbing bg-radial from-[#FBF5E6] via-[#F6EDE0] to-[#E8DCBF]"
+      className="relative w-full h-full overflow-hidden perspective-container cursor-grab active:cursor-grabbing bg-radial from-[#FBF5E6] via-[#F6EDE0] to-[#E8DCBF]"
     >
       {/* Golden Twinkling Sparkles Ambient Backdrop */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
