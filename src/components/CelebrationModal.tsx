@@ -10,6 +10,7 @@ interface CelebrationModalProps {
   members: Member[];
   onGoToCompletedWall: () => void;
   onStayHere: () => void;
+  onOpenKeepsake?: () => void;
 }
 
 export const CelebrationModal: React.FC<CelebrationModalProps> = ({
@@ -18,6 +19,7 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
   members,
   onGoToCompletedWall,
   onStayHere,
+  onOpenKeepsake,
 }) => {
   useEffect(() => {
     if (isOpen) {
@@ -68,20 +70,31 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row items-center gap-2.5">
-          <button
-            onClick={onStayHere}
-            className="w-full sm:w-1/2 py-2.5 rounded-2xl border border-[#DFD4C0] text-xs font-semibold text-[#736351] hover:bg-[#F4ECE0] transition-colors"
-          >
-            留在时间线回看
-          </button>
-          <button
-            onClick={onGoToCompletedWall}
-            className="w-full sm:w-1/2 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl bg-[#D4A346] hover:bg-[#C49439] active:scale-95 text-white text-xs font-bold shadow-md transition-all"
-          >
-            <span>进入完成墙</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </button>
+        <div className="flex flex-col gap-2.5">
+          {onOpenKeepsake && (
+            <button
+              onClick={onOpenKeepsake}
+              className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl bg-linear-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 active:scale-95 text-[#3A2800] text-xs sm:text-sm font-extrabold shadow-md transition-all cursor-pointer"
+            >
+              <span>🖼️ 导出心愿卡 (保存到手机/电脑)</span>
+            </button>
+          )}
+
+          <div className="flex flex-col sm:flex-row items-center gap-2">
+            <button
+              onClick={onStayHere}
+              className="w-full sm:w-1/2 py-2.5 rounded-2xl border border-[#DFD4C0] text-xs font-semibold text-[#736351] hover:bg-[#F4ECE0] transition-colors"
+            >
+              留在时间线回看
+            </button>
+            <button
+              onClick={onGoToCompletedWall}
+              className="w-full sm:w-1/2 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl bg-[#D4A346] hover:bg-[#C49439] active:scale-95 text-white text-xs font-bold shadow-md transition-all"
+            >
+              <span>进入完成墙</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

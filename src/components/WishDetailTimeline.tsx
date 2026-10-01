@@ -15,13 +15,16 @@ import {
   Smile,
   BadgeCheck,
   Trash2,
+  Download,
 } from 'lucide-react';
 import { CATEGORY_OPTIONS, DECO_ICONS } from '../services/storage';
 import { sound } from '../utils/sound';
+import { WishCardExportModal } from './WishCardExportModal';
 
 interface WishDetailTimelineProps {
   wish: Wish;
   members: Member[];
+  allWishes?: Wish[];
   onBack: () => void;
   onOpenAddStep: () => void;
   onCompleteWish: () => void;
@@ -31,11 +34,13 @@ interface WishDetailTimelineProps {
 export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
   wish,
   members,
+  allWishes = [],
   onBack,
   onOpenAddStep,
   onCompleteWish,
   onDeleteWish,
 }) => {
+  const [isKeepsakeOpen, setIsKeepsakeOpen] = useState(false);
   const isCompleted = wish.status === '已完成';
   const steps = wish.progressSteps || [];
 
@@ -110,6 +115,19 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
           </button>
 
           <div className="flex items-center gap-2">
+            {isCompleted && (
+              <button
+                onClick={() => {
+                  sound.playTap();
+                  setIsKeepsakeOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-linear-to-r from-amber-300 to-amber-400 hover:from-amber-400 hover:to-yellow-500 text-xs font-extrabold text-[#3B2900] shadow-xs active:scale-95 transition-all cursor-pointer"
+                title="导出心愿卡"
+              >
+                <span>🖼️ 导出心愿卡</span>
+              </button>
+            )}
+
             <div className="flex items-center gap-2 text-xs font-medium text-[#7D6E5D]">
               {isCompleted ? (
                 <span className="flex items-center gap-1 text-[#8C6920] bg-amber-100/70 border border-amber-200/80 px-2.5 py-0.5 rounded-full">
@@ -238,17 +256,29 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
               </div>
 
               {/* Family Effort Summary (Warm, no ranking, pure togetherness) */}
-              <div className="pt-2 border-t border-amber-200/60 flex flex-wrap items-center gap-3">
-                <span className="text-[#8C6E2D]">全家共同印记：</span>
-                <span className="px-2 py-0.5 rounded-md bg-white/70 border border-amber-200/80">
-                  👨 爸爸参与了 <strong>{stats.dad}</strong> 次
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-white/70 border border-amber-200/80">
-                  👦 儿子参与了 <strong>{stats.son}</strong> 次
-                </span>
-                <span className="px-2 py-0.5 rounded-md bg-white/70 border border-amber-200/80">
-                  👩 妈妈参与了 <strong>{stats.mom}</strong> 次
-                </span>
+              <div className="pt-2 border-t border-amber-200/60 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="text-[#8C6E2D]">全家共同印记：</span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/70 border border-amber-200/80">
+                    👨 爸爸参与了 <strong>{stats.dad}</strong> 次
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/70 border border-amber-200/80">
+                    👦 儿子参与了 <strong>{stats.son}</strong> 次
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-white/70 border border-amber-200/80">
+                    👩 妈妈参与了 <strong>{stats.mom}</strong> 次
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => {
+                    sound.playTap();
+                    setIsKeepsakeOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-linear-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-xs font-bold text-[#3A2800] shadow-xs active:scale-95 transition-all cursor-pointer"
+                >
+                  <span>🖼️ 导出心愿卡</span>
+                </button>
               </div>
             </div>
           )}
@@ -439,12 +469,36 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
               </button>
             </div>
           ) : (
-            <div className="w-full text-center py-3 bg-[#FFFDF7] rounded-2xl border border-[#E8D49E] text-xs text-[#8C6920] font-medium">
-              ✨ 这个心愿已在家庭完成墙中永久珍藏，随时可以回来翻阅这段珍贵的奋斗时光！
+            <div className="p-5 sm:p-6 bg-linear-to-b from-[#FFFDF7] to-[#FAF3E4] rounded-3xl border-2 border-[#EAD49E] text-center shadow-xs">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 border border-amber-300 text-xs font-bold text-[#8C6920] mb-2">
+                <Trophy className="w-3.5 h-3.5 text-[#D4A346]" />
+                <span>心愿圆满达成 · 专属纪念卡</span>
+              </div>
+              <p className="text-xs sm:text-sm text-[#735F4B] max-w-lg mx-auto mb-4 leading-relaxed font-medium">
+                将这个心愿的核心信息与全家人的成长历程，提炼生成一张艺术设计感满满的 9:16 竖版纪念卡片。可随时保存到手机或电脑相册，记录并分享每一个闪光时刻！
+              </p>
+              <button
+                onClick={() => {
+                  sound.playCelebration();
+                  setIsKeepsakeOpen(true);
+                }}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-linear-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 active:scale-95 text-[#3A2800] text-sm font-black shadow-md transition-all cursor-pointer"
+              >
+                <span>🖼️ 导出心愿卡 (保存到手机/电脑相册)</span>
+              </button>
             </div>
           )}
         </div>
       </div>
+
+      {/* Export Wish Card Modal */}
+      <WishCardExportModal
+        isOpen={isKeepsakeOpen}
+        wish={wish}
+        members={members}
+        allWishes={allWishes}
+        onClose={() => setIsKeepsakeOpen(false)}
+      />
     </div>
   );
 };

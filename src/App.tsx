@@ -18,6 +18,7 @@ import { AddWishModal } from './components/AddWishModal';
 import { AddStepModal } from './components/AddStepModal';
 import { CelebrationModal } from './components/CelebrationModal';
 import { OnboardingSetup } from './components/OnboardingSetup';
+import { WishCardExportModal } from './components/WishCardExportModal';
 
 export default function App() {
   const [data, setData] = useState<FamilyData>(() => loadFamilyData());
@@ -29,6 +30,7 @@ export default function App() {
   const [isAddStepOpen, setIsAddStepOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [celebrationWish, setCelebrationWish] = useState<Wish | null>(null);
+  const [keepsakeWish, setKeepsakeWish] = useState<Wish | null>(null);
 
   // Sync to localStorage whenever data changes
   const updateData = (newData: FamilyData) => {
@@ -239,6 +241,7 @@ export default function App() {
           <WishDetailTimeline
             wish={selectedWish}
             members={data.members}
+            allWishes={data.wishes}
             onBack={handleBackFromDetail}
             onOpenAddStep={() => setIsAddStepOpen(true)}
             onCompleteWish={handleCompleteWish}
@@ -279,6 +282,20 @@ export default function App() {
           onStayHere={() => {
             setCelebrationWish(null);
           }}
+          onOpenKeepsake={() => {
+            setKeepsakeWish(celebrationWish);
+            setCelebrationWish(null);
+          }}
+        />
+      )}
+
+      {keepsakeWish && (
+        <WishCardExportModal
+          isOpen={Boolean(keepsakeWish)}
+          wish={keepsakeWish}
+          members={data.members}
+          allWishes={data.wishes}
+          onClose={() => setKeepsakeWish(null)}
         />
       )}
 
