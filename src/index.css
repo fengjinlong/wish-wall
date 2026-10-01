@@ -23,6 +23,15 @@
   touch-action: none;
 }
 
+/* 微信长按保存图片必备类：允许长按呼出原生保存菜单 */
+.wechat-saveable-img {
+  -webkit-touch-callout: default !important;
+  touch-callout: default !important;
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  pointer-events: auto !important;
+}
+
 .preserve-3d-scene {
   transform-style: preserve-3d;
   will-change: transform;

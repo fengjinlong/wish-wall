@@ -53,6 +53,7 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
   const [saveSuccessTip, setSaveSuccessTip] = useState(false);
   const [shareTip, setShareTip] = useState<string | null>(null);
   const [photoTip, setPhotoTip] = useState<string | null>(null);
+  const [fullscreenImgUrl, setFullscreenImgUrl] = useState<string | null>(null);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +66,7 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
       setSaveSuccessTip(false);
       setShareTip(null);
       setPhotoTip(null);
+      setFullscreenImgUrl(null);
     }
   }, [isOpen, wish.id]);
 
@@ -222,7 +224,7 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
     setTimeout(() => setPhotoTip(null), 3000);
   };
 
-  // Save image to local disk
+  // Save image: renders crisp PNG, opens fullscreen WeChat long-press viewer, and triggers download
   const handleSaveImage = async () => {
     if (!cardRef.current) return;
     setIsExporting(true);
@@ -238,10 +240,18 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
         cacheBust: true,
       });
 
-      const link = document.createElement('a');
-      link.download = `心愿纪念卡_${wish.title.replace(/[\\/:*?"<>|]/g, '_')}.png`;
-      link.href = dataUrl;
-      link.click();
+      // Show real <img> full-screen view for WeChat & mobile long-press save
+      setFullscreenImgUrl(dataUrl);
+
+      // Trigger desktop browser download as convenience fallback
+      try {
+        const link = document.createElement('a');
+        link.download = `心愿纪念卡_${wish.title.replace(/[\\/:*?"<>|]/g, '_')}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (e) {
+        console.warn('Direct file download fallback skipped:', e);
+      }
 
       sound.playCelebration();
       fireConfetti(2200);
@@ -249,7 +259,7 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
       setTimeout(() => setSaveSuccessTip(false), 4500);
     } catch (err) {
       console.error('Failed to export card image:', err);
-      alert('保存图片失败，请重试');
+      alert('生成图片失败，请重试');
     } finally {
       setIsExporting(false);
     }
@@ -543,11 +553,13 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
         </div>
 
         {/* Modal Center: Live Preview Container */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex items-center justify-center bg-[#E5DCBE]/40">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 flex flex-col items-center justify-center bg-[#E5DCBE]/40 gap-2.5">
           {/* THE CAPTURED EXPORT CARD ELEMENT (9:16 Ratio Base 320x568) */}
           <div
             ref={cardRef}
-            className={`w-[320px] h-[568px] rounded-3xl ${layoutSettings.cardPadding} relative flex flex-col justify-between overflow-hidden shrink-0 shadow-xl border select-none transition-colors duration-300`}
+            onClick={handleSaveImage}
+            title="点击卡片可全屏展示并长按保存到相册"
+            className={`w-[320px] h-[568px] rounded-3xl ${layoutSettings.cardPadding} relative flex flex-col justify-between overflow-hidden shrink-0 shadow-xl border select-none transition-colors duration-300 cursor-pointer`}
             style={
               isPhotoMode
                 ? {
@@ -1088,6 +1100,11 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
               </div>
             </div>
           </div>
+
+          {/* Subtle click prompt below card */}
+          <div className="text-[11px] text-[#7D6B58] flex items-center gap-1.5 bg-[#FAF7F0]/90 px-3 py-1 rounded-full border border-[#D8CCB7] shadow-2xs select-none">
+            <span>💡 点击卡片或下方「保存图片」，即可全屏真图长按保存至相册</span>
+          </div>
         </div>
 
         {/* Modal Bottom Actions Bar */}
@@ -1151,6 +1168,74 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* FULLSCREEN REAL <img> VIEW FOR WECHAT & MOBILE LONG-PRESS SAVE */}
+      {fullscreenImgUrl && (
+        <div
+          className="fixed inset-0 z-80 bg-[#0E0C0A]/95 backdrop-blur-md flex flex-col items-center justify-between p-3 sm:p-5 select-none animate-in fade-in duration-200"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Top Prompt & Close Bar */}
+          <div className="w-full max-w-md flex items-center justify-between gap-2.5 pt-1 sm:pt-2 pb-1 shrink-0">
+            <div className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 sm:px-4 rounded-full bg-linear-to-r from-amber-400 via-amber-300 to-yellow-400 text-[#362200] font-black text-sm sm:text-base shadow-lg border border-amber-200/90 animate-bounce">
+              <span>👆长按图片，选择'保存图片'</span>
+            </div>
+            <button
+              onClick={() => setFullscreenImgUrl(null)}
+              className="p-2 sm:p-2.5 rounded-full bg-white/15 hover:bg-white/25 text-white active:scale-95 transition-all cursor-pointer shrink-0"
+              title="关闭全屏预览"
+            >
+              <X className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+          </div>
+
+          {/* Explanatory helper subtitle */}
+          <p className="text-[11px] sm:text-xs text-amber-100/90 text-center font-medium shrink-0 mb-1">
+            微信中长按下方图片，呼出系统菜单并点击“保存图片”即可存入手机相册
+          </p>
+
+          {/* Center Area: Genuine <img> Tag */}
+          <div className="flex-1 w-full flex items-center justify-center overflow-auto py-2 my-auto">
+            <img
+              src={fullscreenImgUrl}
+              alt={`心愿纪念卡-${wish.title}`}
+              className="wechat-saveable-img max-h-[70vh] sm:max-h-[76vh] w-auto max-w-[92vw] sm:max-w-sm md:max-w-md object-contain rounded-2xl shadow-2xl border-2 border-white/25 cursor-pointer transition-transform"
+              style={{
+                WebkitTouchCallout: 'default',
+                userSelect: 'auto',
+                WebkitUserSelect: 'auto',
+                pointerEvents: 'auto',
+              }}
+            />
+          </div>
+
+          {/* Bottom Actions Bar */}
+          <div className="w-full max-w-md flex items-center justify-center gap-3 pt-2 pb-1 shrink-0">
+            <button
+              onClick={() => setFullscreenImgUrl(null)}
+              className="flex-1 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white text-xs font-semibold active:scale-95 transition-all text-center cursor-pointer"
+            >
+              返回调整样式
+            </button>
+            <button
+              onClick={() => {
+                try {
+                  const link = document.createElement('a');
+                  link.download = `心愿纪念卡_${wish.title.replace(/[\\/:*?"<>|]/g, '_')}.png`;
+                  link.href = fullscreenImgUrl;
+                  link.click();
+                } catch (e) {
+                  console.error(e);
+                }
+              }}
+              className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-500 text-[#362200] text-xs font-bold active:scale-95 shadow-md transition-all cursor-pointer whitespace-nowrap"
+            >
+              <Download className="w-4 h-4 stroke-[2.5]" />
+              <span>直接下载文件</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
