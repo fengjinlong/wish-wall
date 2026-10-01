@@ -7,11 +7,83 @@ import React from 'react';
 
 export type WishCardTone = 'morning' | 'afternoon' | 'night';
 export type WishCardLayout = 'balanced' | 'prominent_title' | 'journey_focus';
+export type PhotoTemplate = 'light' | 'serene' | 'warm_vintage';
 
 export interface WishCardPreference {
   seed: number;
   tone: WishCardTone;
   layout: WishCardLayout;
+  photoUrl?: string | null;
+  photoTemplate?: PhotoTemplate;
+}
+
+export interface PhotoTemplateConfig {
+  filter: string;
+  overlayTint: string;
+  label: string;
+  description: string;
+}
+
+export const PHOTO_TEMPLATES: Record<PhotoTemplate, PhotoTemplateConfig> = {
+  light: {
+    filter: 'blur(6px) saturate(0.9) brightness(0.95)',
+    overlayTint: 'rgba(40, 55, 48, 0.35)',
+    label: '轻盈版',
+    description: '清新自然，隐约透出原片轮廓',
+  },
+  serene: {
+    filter: 'blur(16px) saturate(0.85) brightness(0.85)',
+    overlayTint: 'rgba(22, 28, 38, 0.46)',
+    label: '静谧版',
+    description: '虚化氛围光斑，文字对比度最高最易读',
+  },
+  warm_vintage: {
+    filter: 'blur(10px) saturate(0.8) sepia(0.15) brightness(0.92)',
+    overlayTint: 'rgba(70, 48, 25, 0.40)',
+    label: '暖旧版',
+    description: '怀旧相册质感，温润醇厚',
+  },
+};
+
+// Client-side image compression to lightweight JPEG (~70% quality, max dimension 1000px)
+export function compressImageToJpeg(
+  file: File,
+  maxWidth = 1000,
+  quality = 0.72
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth || height > maxWidth) {
+          if (width > height) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxWidth) / height);
+            height = maxWidth;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target?.result as string;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 }
 
 export interface GeneratedBackground {
@@ -406,7 +478,13 @@ export function loadWishCardPreference(wishId: string): WishCardPreference {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed.seed && parsed.tone && parsed.layout) {
-        return parsed;
+        return {
+          seed: parsed.seed,
+          tone: parsed.tone,
+          layout: parsed.layout,
+          photoUrl: parsed.photoUrl || null,
+          photoTemplate: parsed.photoTemplate || 'light',
+        };
       }
     }
   } catch (e) {
@@ -417,6 +495,8 @@ export function loadWishCardPreference(wishId: string): WishCardPreference {
     seed: hashStringToInt(wishId) || 8888,
     tone: 'afternoon',
     layout: 'balanced',
+    photoUrl: null,
+    photoTemplate: 'light',
   };
 }
 
