@@ -108,34 +108,34 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
               sound.playTap();
               onBack();
             }}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F2ECE0] hover:bg-[#E9DFD0] text-xs font-semibold text-[#5A4D3E] transition-all active:scale-95 shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#F2ECE0] hover:bg-[#E9DFD0] text-xs font-semibold text-[#5A4D3E] transition-all active:scale-95 shadow-xs whitespace-nowrap shrink-0"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>返回{isCompleted ? '完成墙' : '许愿墙'}</span>
+            <span>返回</span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {isCompleted && (
               <button
                 onClick={() => {
                   sound.playTap();
                   setIsKeepsakeOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-linear-to-r from-amber-300 to-amber-400 hover:from-amber-400 hover:to-yellow-500 text-xs font-extrabold text-[#3B2900] shadow-xs active:scale-95 transition-all cursor-pointer"
+                className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-full bg-linear-to-r from-amber-300 to-amber-400 hover:from-amber-400 hover:to-yellow-500 text-xs font-extrabold text-[#3B2900] shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap"
                 title="导出心愿卡"
               >
-                <span>🖼️ 导出心愿卡</span>
+                <span>🖼️ 导出卡</span>
               </button>
             )}
 
             <div className="flex items-center gap-2 text-xs font-medium text-[#7D6E5D]">
               {isCompleted ? (
-                <span className="flex items-center gap-1 text-[#8C6920] bg-amber-100/70 border border-amber-200/80 px-2.5 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 text-[#8C6920] bg-amber-100/70 border border-amber-200/80 px-2.5 py-0.5 rounded-full whitespace-nowrap">
                   <Trophy className="w-3.5 h-3.5 text-[#D4A346]" />
-                  已圆满达成
+                  已达成
                 </span>
               ) : (
-                <span className="flex items-center gap-1 bg-[#E8F0F3] text-[#3D6677] border border-[#CCDCE2] px-2.5 py-0.5 rounded-full">
+                <span className="flex items-center gap-1 bg-[#E8F0F3] text-[#3D6677] border border-[#CCDCE2] px-2.5 py-0.5 rounded-full whitespace-nowrap">
                   <Footprints className="w-3.5 h-3.5 text-[#5B8EA6]" />
                   已迈出 {steps.length} 步
                 </span>
@@ -482,9 +482,9 @@ export const WishDetailTimeline: React.FC<WishDetailTimelineProps> = ({
                   sound.playCelebration();
                   setIsKeepsakeOpen(true);
                 }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-linear-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 active:scale-95 text-[#3A2800] text-sm font-black shadow-md transition-all cursor-pointer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3 rounded-2xl bg-linear-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 active:scale-95 text-[#3A2800] text-sm font-black shadow-md transition-all cursor-pointer whitespace-nowrap"
               >
-                <span>🖼️ 导出心愿卡 (保存到手机/电脑相册)</span>
+                <span>🖼️ 导出心愿卡</span>
               </button>
             </div>
           )}

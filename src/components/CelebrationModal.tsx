@@ -74,9 +74,9 @@ export const CelebrationModal: React.FC<CelebrationModalProps> = ({
           {onOpenKeepsake && (
             <button
               onClick={onOpenKeepsake}
-              className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl bg-linear-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 active:scale-95 text-[#3A2800] text-xs sm:text-sm font-extrabold shadow-md transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 py-3 rounded-2xl bg-linear-to-r from-amber-400 via-amber-500 to-yellow-500 hover:from-amber-500 hover:to-yellow-600 active:scale-95 text-[#3A2800] text-xs sm:text-sm font-extrabold shadow-md transition-all cursor-pointer whitespace-nowrap"
             >
-              <span>🖼️ 导出心愿卡 (保存到手机/电脑)</span>
+              <span>🖼️ 导出心愿卡</span>
             </button>
           )}
 

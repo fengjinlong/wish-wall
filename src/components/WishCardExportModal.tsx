@@ -358,16 +358,8 @@ export const WishCardExportModal: React.FC<WishCardExportModalProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-xl">🖼️</span>
             <div>
-              <h2 className="text-sm sm:text-base font-bold text-[#3E3326] flex items-center gap-2">
-                <span>导出心愿纪念卡</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-[#8C6920] border border-amber-300 font-bold">
-                  9:16 精致竖版
-                </span>
-                {isPhotoMode && (
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 border border-indigo-200 font-bold">
-                    📷 照片氛围模式
-                  </span>
-                )}
+              <h2 className="text-sm sm:text-base font-bold text-[#3E3326] whitespace-nowrap">
+                导出心愿纪念卡
               </h2>
               <p className="text-[11px] text-[#827260]">
                 极简少字 · 艺术旅程 · 一眼见证心愿圆满
